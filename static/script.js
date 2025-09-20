@@ -240,5 +240,59 @@ editModal.addEventListener('click', function(e) {
 });
 
 // ESCキーでモーダルを閉じる
-document
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && editModal.style.display === 'block') {
+        closeEditModal();
+    }
+});
 
+// バリデーション関数
+function validateForm(formData) {
+    const title = formData.get('title');
+    const dueDate = formData.get('due_date');
+    
+    if (!title || title.trim() === '') {
+        showMessage('タイトルは必須です。', 'error');
+        return false;
+    }
+    
+    if (!dueDate || dueDate.trim() === '') {
+        showMessage('期日は必須です。', 'error');
+        return false;
+    }
+    
+    return true;
+}
+
+// メッセージ表示関数
+function showMessage(message, type = 'info') {
+    // 既存のメッセージを削除
+    const existingMessages = document.querySelectorAll('.flash-message');
+    existingMessages.forEach(msg => msg.remove());
+    
+    // 新しいメッセージを作成
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `flash-message ${type}`;
+    messageDiv.setAttribute('role', 'alert');
+    messageDiv.setAttribute('aria-live', 'polite');
+    messageDiv.innerHTML = `<p>${message}</p>`;
+    
+    // メッセージを挿入
+    const container = document.querySelector('.container');
+    container.insertBefore(messageDiv, container.firstChild);
+    
+    // 自動で非表示にする
+    setTimeout(() => {
+        messageDiv.style.opacity = '0';
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 300);
+    }, 5000);
+}
+
+// HTMLエスケープ関数
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}

@@ -14,7 +14,7 @@ class Config:
     GOOGLE_CALENDAR_ID = os.environ.get('GOOGLE_CALENDAR_ID') or 'primary'
     
     # スプレッドシート設定
-    SHEET_NAME = 'タスク一覧'
+    SHEET_NAME = 'TaskList'  # 英語のシート名に変更
     HEADERS = ['タイトル', '内容', '期日', 'メモ📝', '作成日時']
     
     # リマインド設定

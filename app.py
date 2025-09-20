@@ -166,5 +166,9 @@ def sort_tasks():
         logger.error(f"タスクソートエラー: {e}")
         return jsonify({'success': False, 'message': 'ソートに失敗しました。'})
 
+# Vercel用のエントリーポイント
+def handler(request):
+    return app(request.environ, start_response)
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
