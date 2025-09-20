@@ -12,15 +12,34 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class GoogleSheetsAPI:
-    def __init__(self, credentials_file: str, spreadsheet_id: str):
+    def __init__(self, credentials_file: str = None, spreadsheet_id: str = None):
         """Google Sheets APIクライアントを初期化"""
         try:
-            self.credentials = service_account.Credentials.from_service_account_file(
-                credentials_file,
-                scopes=['https://www.googleapis.com/auth/spreadsheets']
-            )
+            # 環境変数から認証情報を取得
+            if credentials_file and os.path.exists(credentials_file):
+                # ファイルから認証情報を読み取り
+                self.credentials = service_account.Credentials.from_service_account_file(
+                    credentials_file,
+                    scopes=['https://www.googleapis.com/auth/spreadsheets']
+                )
+            else:
+                # 環境変数から認証情報を取得
+                credentials_json = os.environ.get('GOOGLE_CREDENTIALS')
+                if not credentials_json:
+                    raise ValueError("Google認証情報が見つかりません")
+                
+                credentials_info = json.loads(credentials_json)
+                self.credentials = service_account.Credentials.from_service_account_info(
+                    credentials_info,
+                    scopes=['https://www.googleapis.com/auth/spreadsheets']
+                )
+            
             self.service = build('sheets', 'v4', credentials=self.credentials)
-            self.spreadsheet_id = spreadsheet_id
+            self.spreadsheet_id = spreadsheet_id or os.environ.get('GOOGLE_SHEETS_ID')
+            
+            if not self.spreadsheet_id:
+                raise ValueError("スプレッドシートIDが設定されていません")
+            
             logger.info("Google Sheets API初期化成功")
         except Exception as e:
             logger.error(f"Google Sheets API初期化エラー: {e}")
@@ -155,15 +174,31 @@ class GoogleSheetsAPI:
 
 
 class GoogleCalendarAPI:
-    def __init__(self, credentials_file: str, calendar_id: str = 'primary'):
+    def __init__(self, credentials_file: str = None, calendar_id: str = 'primary'):
         """Google Calendar APIクライアントを初期化"""
         try:
-            self.credentials = service_account.Credentials.from_service_account_file(
-                credentials_file,
-                scopes=['https://www.googleapis.com/auth/calendar']
-            )
+            # 環境変数から認証情報を取得
+            if credentials_file and os.path.exists(credentials_file):
+                # ファイルから認証情報を読み取り
+                self.credentials = service_account.Credentials.from_service_account_file(
+                    credentials_file,
+                    scopes=['https://www.googleapis.com/auth/calendar']
+                )
+            else:
+                # 環境変数から認証情報を取得
+                credentials_json = os.environ.get('GOOGLE_CREDENTIALS')
+                if not credentials_json:
+                    raise ValueError("Google認証情報が見つかりません")
+                
+                credentials_info = json.loads(credentials_json)
+                self.credentials = service_account.Credentials.from_service_account_info(
+                    credentials_info,
+                    scopes=['https://www.googleapis.com/auth/calendar']
+                )
+            
             self.service = build('calendar', 'v3', credentials=self.credentials)
-            self.calendar_id = calendar_id
+            self.calendar_id = calendar_id or os.environ.get('GOOGLE_CALENDAR_ID', 'primary')
+            
             logger.info("Google Calendar API初期化成功")
         except Exception as e:
             logger.error(f"Google Calendar API初期化エラー: {e}")

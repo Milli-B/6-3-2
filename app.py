@@ -14,12 +14,17 @@ app.config.from_object(Config)
 
 # Google APIクライアント初期化
 try:
+    # 環境変数から認証情報を取得
+    credentials_file = Config.GOOGLE_CREDENTIALS_FILE
+    if not credentials_file or not os.path.exists(credentials_file):
+        credentials_file = None  # 環境変数から取得する
+    
     sheets_api = GoogleSheetsAPI(
-        Config.GOOGLE_CREDENTIALS_FILE,
+        credentials_file,
         Config.GOOGLE_SHEETS_ID
     )
     calendar_api = GoogleCalendarAPI(
-        Config.GOOGLE_CREDENTIALS_FILE,
+        credentials_file,
         Config.GOOGLE_CALENDAR_ID
     )
     logger.info("Google APIクライアント初期化成功")
