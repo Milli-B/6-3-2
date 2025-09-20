@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To Do List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>�� My To Do List</h1>
+            <p class="subtitle">Googleスプレッドシート連携タスク管理アプリ</p>
+        </header>
+
+        <!-- エラーメッセージ表示 -->
+        {% if error %}
+        <div class="error-message" role="alert" aria-live="polite">
+            <p>⚠️ Google APIの設定に問題があります。設定を確認してください。</p>
+        </div>
+        {% endif %}
+
+        <!-- フラッシュメッセージ表示 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}" role="alert" aria-live="polite">
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- ソート機能 -->
+        <div class="sort-controls">
+            <h2>タスク一覧</h2>
+            <div class="sort-buttons">
+                <button id="sort-asc" class="sort-btn" aria-label="期日が早い順でソート">
+                    📅 早い順
+                </button>
+                <button id="sort-desc" class="sort-btn" aria-label="期日が遅い順でソート">
+                    📅 遅い順
+                </button>
+            </div>
+        </div>
+
+        <!-- タスクテーブル -->
+        <div class="table-container">
+            <table class="task-table" role="table" aria-label="タスク一覧">
+                <thead>
+                    <tr class="table-header">
+                        <th scope="col" class="col-title">タイトル</th>
+                        <th scope="col" class="col-content">内容</th>
+                        <th scope="col" class="col-due-date">期日</th>
+                        <th scope="col" class="col-memo">メモ📝</th>
+                        <th scope="col" class="col-actions">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="task-tbody">
+                    {% for task in tasks %}
+                    <tr class="task-row" data-task-id="{{ task.id }}">
+                        <td class="col-title">{{ task.title }}</td>
+                        <td class="col-content">{{ task.content }}</td>
+                        <td class="col-due-date">{{ task.due_date }}</td>
+                        <td class="col-memo">{{ task.memo }}</td>
+                        <td class="col-actions">
+                            <button class="edit-btn" onclick="editTask({{ task.id }})" aria-label="タスクを編集">
+                                ✏️
+                            </button>
+                            <button class="delete-btn" onclick="deleteTask({{ task.id }})" aria-label="タスクを削除">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 新しいタスク追加フォーム -->
+        <div class="add-task-section">
+            <h2>新しいタスクを追加</h2>
+            <form id="add-task-form" class="task-form" role="form" aria-label="新しいタスク追加フォーム">
+                <div class="form-group">
+                    <label for="title" class="required">タイトル</label>
+                    <input type="text" id="title" name="title" required 
+                           aria-describedby="title-help" aria-required="true">
+                    <small id="title-help" class="form-help">タスクのタイトルを入力してください（必須）</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">内容</label>
+                    <textarea id="content" name="content" rows="3" 
+                              aria-describedby="content-help"></textarea>
+                    <small id="content-help" class="form-help">タスクの詳細を入力してください（任意）</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="due_date" class="required">期日</label>
+                    <input type="date" id="due_date" name="due_date" required 
+                           aria-describedby="due-date-help" aria-required="true">
+                    <small id="due-date-help" class="form-help">タスクの期日を選択してください（必須）</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="memo">メモ📝</label>
+                    <textarea id="memo" name="memo" rows="2" 
+                              aria-describedby="memo-help"></textarea>
+                    <small id="memo-help" class="form-help">追加のメモを入力してください（任意）</small>
+                </div>
+
+                <button type="submit" class="submit-btn" aria-label="タスクを追加">
+                    ➕ タスクを追加
+                </button>
+            </form>
+        </div>
+
+        <!-- 編集モーダル -->
+        <div id="edit-modal" class="modal" role="dialog" aria-labelledby="edit-modal-title" aria-hidden="true">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="edit-modal-title">タスクを編集</h2>
+                    <button class="close-btn" onclick="closeEditModal()" aria-label="モーダルを閉じる">
+                        ✕
+                    </button>
+                </div>
+                <form id="edit-task-form" class="task-form">
+                    <input type="hidden" id="edit-task-id" name="task_id">
+                    
+                    <div class="form-group">
+                        <label for="edit-title" class="required">タイトル</label>
+                        <input type="text" id="edit-title" name="title" required 
+                               aria-describedby="edit-title-help" aria-required="true">
+                        <small id="edit-title-help" class="form-help">タスクのタイトルを入力してください（必須）</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-content">内容</label>
+                        <textarea id="edit-content" name="content" rows="3" 
+                                  aria-describedby="edit-content-help"></textarea>
+                        <small id="edit-content-help" class="form-help">タスクの詳細を入力してください（任意）</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-due_date" class="required">期日</label>
+                        <input type="date" id="edit-due_date" name="due_date" required 
+                               aria-describedby="edit-due-date-help" aria-required="true">
+                        <small id="edit-due-date-help" class="form-help">タスクの期日を選択してください（必須）</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edit-memo">メモ📝</label>
+                        <textarea id="edit-memo" name="memo" rows="2" 
+                                  aria-describedby="edit-memo-help"></textarea>
+                        <small id="edit-memo-help" class="form-help">追加のメモを入力してください（任意）</small>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="cancel-btn" onclick="closeEditModal()">
+                            キャンセル
+                        </button>
+                        <button type="submit" class="submit-btn">
+                            💾 更新
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ローディング表示 -->
+        <div id="loading" class="loading" aria-hidden="true">
+            <div class="loading-spinner"></div>
+            <p>処理中...</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
