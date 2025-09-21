@@ -19,6 +19,7 @@ try:
     if not credentials_file or not os.path.exists(credentials_file):
         credentials_file = None  # 環境変数から取得する
     
+    logger.info("Google APIクライアント初期化開始...")
     sheets_api = GoogleSheetsAPI(
         credentials_file,
         Config.GOOGLE_SHEETS_ID
