@@ -14,10 +14,8 @@ app.config.from_object(Config)
 
 # Google APIクライアント初期化
 try:
-    # 環境変数から認証情報を取得
-    credentials_file = Config.GOOGLE_CREDENTIALS_FILE
-    if not credentials_file or not os.path.exists(credentials_file):
-        credentials_file = None  # 環境変数から取得する
+    # 個別環境変数を使用するため、credentials_fileはNoneに設定
+    credentials_file = None
     
     logger.info("Google APIクライアント初期化開始...")
     sheets_api = GoogleSheetsAPI(
