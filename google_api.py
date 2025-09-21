@@ -28,17 +28,30 @@ class GoogleSheetsAPI:
                 logger.info("環境変数から認証情報を取得中...")
                 
                 # 個別環境変数から取得
+                project_id = os.environ.get('GOOGLE_PROJECT_ID')
+                private_key_id = os.environ.get('GOOGLE_PRIVATE_KEY_ID')
+                private_key = os.environ.get('GOOGLE_PRIVATE_KEY')
+                client_email = os.environ.get('GOOGLE_CLIENT_EMAIL')
+                client_id = os.environ.get('GOOGLE_CLIENT_ID')
+                
+                # デバッグ情報を出力
+                logger.info(f"GOOGLE_PROJECT_ID: {project_id}")
+                logger.info(f"GOOGLE_PRIVATE_KEY_ID: {private_key_id}")
+                logger.info(f"GOOGLE_PRIVATE_KEY: {private_key[:50] if private_key else 'None'}...")
+                logger.info(f"GOOGLE_CLIENT_EMAIL: {client_email}")
+                logger.info(f"GOOGLE_CLIENT_ID: {client_id}")
+                
                 credentials_info = {
                     "type": "service_account",
-                    "project_id": os.environ.get('GOOGLE_PROJECT_ID'),
-                    "private_key_id": os.environ.get('GOOGLE_PRIVATE_KEY_ID'),
-                    "private_key": os.environ.get('GOOGLE_PRIVATE_KEY'),
-                    "client_email": os.environ.get('GOOGLE_CLIENT_EMAIL'),
-                    "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                    "project_id": project_id,
+                    "private_key_id": private_key_id,
+                    "private_key": private_key,
+                    "client_email": client_email,
+                    "client_id": client_id,
                     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                     "token_uri": "https://oauth2.googleapis.com/token",
                     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                    "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('GOOGLE_CLIENT_EMAIL', '').replace('@', '%40')}",
+                    "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{client_email.replace('@', '%40') if client_email else ''}",
                     "universe_domain": "googleapis.com"
                 }
                 
@@ -49,8 +62,7 @@ class GoogleSheetsAPI:
                         logger.error(f"必須フィールド {field} が設定されていません")
                         raise ValueError(f"必須フィールド {field} が設定されていません")
                 
-                logger.info(f"project_id: {credentials_info.get('project_id', 'N/A')}")
-                logger.info(f"client_email: {credentials_info.get('client_email', 'N/A')}")
+                logger.info("認証情報の構築完了")
                 
                 self.credentials = service_account.Credentials.from_service_account_info(
                     credentials_info,
@@ -214,17 +226,23 @@ class GoogleCalendarAPI:
                 logger.info("環境変数から認証情報を取得中...")
                 
                 # 個別環境変数から取得
+                project_id = os.environ.get('GOOGLE_PROJECT_ID')
+                private_key_id = os.environ.get('GOOGLE_PRIVATE_KEY_ID')
+                private_key = os.environ.get('GOOGLE_PRIVATE_KEY')
+                client_email = os.environ.get('GOOGLE_CLIENT_EMAIL')
+                client_id = os.environ.get('GOOGLE_CLIENT_ID')
+                
                 credentials_info = {
                     "type": "service_account",
-                    "project_id": os.environ.get('GOOGLE_PROJECT_ID'),
-                    "private_key_id": os.environ.get('GOOGLE_PRIVATE_KEY_ID'),
-                    "private_key": os.environ.get('GOOGLE_PRIVATE_KEY'),
-                    "client_email": os.environ.get('GOOGLE_CLIENT_EMAIL'),
-                    "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                    "project_id": project_id,
+                    "private_key_id": private_key_id,
+                    "private_key": private_key,
+                    "client_email": client_email,
+                    "client_id": client_id,
                     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                     "token_uri": "https://oauth2.googleapis.com/token",
                     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                    "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('GOOGLE_CLIENT_EMAIL', '').replace('@', '%40')}",
+                    "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{client_email.replace('@', '%40') if client_email else ''}",
                     "universe_domain": "googleapis.com"
                 }
                 
