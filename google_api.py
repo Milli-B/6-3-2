@@ -34,12 +34,36 @@ class GoogleSheetsAPI:
                 client_email = os.environ.get('GOOGLE_CLIENT_EMAIL')
                 client_id = os.environ.get('GOOGLE_CLIENT_ID')
                 
-                # デバッグ情報を出力
+                # デバッグ情報を詳細に出力
                 logger.info(f"GOOGLE_PROJECT_ID: {project_id}")
                 logger.info(f"GOOGLE_PRIVATE_KEY_ID: {private_key_id}")
                 logger.info(f"GOOGLE_PRIVATE_KEY: {private_key[:50] if private_key else 'None'}...")
                 logger.info(f"GOOGLE_CLIENT_EMAIL: {client_email}")
                 logger.info(f"GOOGLE_CLIENT_ID: {client_id}")
+                
+                # 各環境変数の存在確認
+                env_vars = {
+                    'GOOGLE_PROJECT_ID': project_id,
+                    'GOOGLE_PRIVATE_KEY_ID': private_key_id,
+                    'GOOGLE_PRIVATE_KEY': private_key,
+                    'GOOGLE_CLIENT_EMAIL': client_email,
+                    'GOOGLE_CLIENT_ID': client_id
+                }
+                
+                for var_name, var_value in env_vars.items():
+                    if var_value:
+                        logger.info(f"{var_name} は設定されています")
+                    else:
+                        logger.error(f"{var_name} が設定されていません")
+                
+                # private_keyの詳細確認
+                if private_key:
+                    logger.info(f"private_key の長さ: {len(private_key)}")
+                    logger.info(f"private_key にBEGINが含まれる: {'BEGIN' in private_key}")
+                    logger.info(f"private_key にENDが含まれる: {'END' in private_key}")
+                    logger.info(f"private_key に\\nが含まれる: {'\\n' in private_key}")
+                else:
+                    logger.error("private_key が None です")
                 
                 credentials_info = {
                     "type": "service_account",
@@ -63,11 +87,18 @@ class GoogleSheetsAPI:
                         raise ValueError(f"必須フィールド {field} が設定されていません")
                 
                 logger.info("認証情報の構築完了")
+                logger.info(f"credentials_info keys: {list(credentials_info.keys())}")
                 
-                self.credentials = service_account.Credentials.from_service_account_info(
-                    credentials_info,
-                    scopes=['https://www.googleapis.com/auth/spreadsheets']
-                )
+                # 認証情報の作成を試行
+                try:
+                    self.credentials = service_account.Credentials.from_service_account_info(
+                        credentials_info,
+                        scopes=['https://www.googleapis.com/auth/spreadsheets']
+                    )
+                    logger.info("認証情報の作成に成功")
+                except Exception as cred_error:
+                    logger.error(f"認証情報の作成に失敗: {cred_error}")
+                    raise
             
             self.service = build('sheets', 'v4', credentials=self.credentials)
             self.spreadsheet_id = spreadsheet_id or os.environ.get('GOOGLE_SHEETS_ID')
