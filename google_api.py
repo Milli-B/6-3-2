@@ -37,6 +37,9 @@ class GoogleSheetsAPI:
                 try:
                     credentials_info = json.loads(credentials_json)
                     logger.info("JSON解析成功")
+                    logger.info(f"project_id: {credentials_info.get('project_id', 'N/A')}")
+                    logger.info(f"client_email: {credentials_info.get('client_email', 'N/A')}")
+                    logger.info(f"universe_domain: {credentials_info.get('universe_domain', 'N/A')}")
                 except json.JSONDecodeError as e:
                     logger.error(f"JSON解析エラー: {e}")
                     raise ValueError(f"認証情報のJSON形式が正しくありません: {e}")
