@@ -26,23 +26,31 @@ class GoogleSheetsAPI:
             else:
                 # 環境変数から認証情報を取得
                 logger.info("環境変数から認証情報を取得中...")
-                credentials_json = os.environ.get('GOOGLE_CREDENTIALS')
-                if not credentials_json:
-                    logger.error("GOOGLE_CREDENTIALS環境変数が見つかりません")
-                    raise ValueError("Google認証情報が見つかりません")
                 
-                logger.info(f"認証情報の長さ: {len(credentials_json)}文字")
-                logger.info(f"認証情報の先頭: {credentials_json[:100]}...")
+                # 個別環境変数から取得
+                credentials_info = {
+                    "type": "service_account",
+                    "project_id": os.environ.get('GOOGLE_PROJECT_ID'),
+                    "private_key_id": os.environ.get('GOOGLE_PRIVATE_KEY_ID'),
+                    "private_key": os.environ.get('GOOGLE_PRIVATE_KEY'),
+                    "client_email": os.environ.get('GOOGLE_CLIENT_EMAIL'),
+                    "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                    "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('GOOGLE_CLIENT_EMAIL', '').replace('@', '%40')}",
+                    "universe_domain": "googleapis.com"
+                }
                 
-                try:
-                    credentials_info = json.loads(credentials_json)
-                    logger.info("JSON解析成功")
-                    logger.info(f"project_id: {credentials_info.get('project_id', 'N/A')}")
-                    logger.info(f"client_email: {credentials_info.get('client_email', 'N/A')}")
-                    logger.info(f"universe_domain: {credentials_info.get('universe_domain', 'N/A')}")
-                except json.JSONDecodeError as e:
-                    logger.error(f"JSON解析エラー: {e}")
-                    raise ValueError(f"認証情報のJSON形式が正しくありません: {e}")
+                # 必須フィールドの確認
+                required_fields = ['project_id', 'private_key', 'client_email']
+                for field in required_fields:
+                    if not credentials_info.get(field):
+                        logger.error(f"必須フィールド {field} が設定されていません")
+                        raise ValueError(f"必須フィールド {field} が設定されていません")
+                
+                logger.info(f"project_id: {credentials_info.get('project_id', 'N/A')}")
+                logger.info(f"client_email: {credentials_info.get('client_email', 'N/A')}")
                 
                 self.credentials = service_account.Credentials.from_service_account_info(
                     credentials_info,
@@ -204,17 +212,28 @@ class GoogleCalendarAPI:
             else:
                 # 環境変数から認証情報を取得
                 logger.info("環境変数から認証情報を取得中...")
-                credentials_json = os.environ.get('GOOGLE_CREDENTIALS')
-                if not credentials_json:
-                    logger.error("GOOGLE_CREDENTIALS環境変数が見つかりません")
-                    raise ValueError("Google認証情報が見つかりません")
                 
-                try:
-                    credentials_info = json.loads(credentials_json)
-                    logger.info("JSON解析成功")
-                except json.JSONDecodeError as e:
-                    logger.error(f"JSON解析エラー: {e}")
-                    raise ValueError(f"認証情報のJSON形式が正しくありません: {e}")
+                # 個別環境変数から取得
+                credentials_info = {
+                    "type": "service_account",
+                    "project_id": os.environ.get('GOOGLE_PROJECT_ID'),
+                    "private_key_id": os.environ.get('GOOGLE_PRIVATE_KEY_ID'),
+                    "private_key": os.environ.get('GOOGLE_PRIVATE_KEY'),
+                    "client_email": os.environ.get('GOOGLE_CLIENT_EMAIL'),
+                    "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                    "client_x509_cert_url": f"https://www.googleapis.com/robot/v1/metadata/x509/{os.environ.get('GOOGLE_CLIENT_EMAIL', '').replace('@', '%40')}",
+                    "universe_domain": "googleapis.com"
+                }
+                
+                # 必須フィールドの確認
+                required_fields = ['project_id', 'private_key', 'client_email']
+                for field in required_fields:
+                    if not credentials_info.get(field):
+                        logger.error(f"必須フィールド {field} が設定されていません")
+                        raise ValueError(f"必須フィールド {field} が設定されていません")
                 
                 self.credentials = service_account.Credentials.from_service_account_info(
                     credentials_info,
