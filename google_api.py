@@ -18,17 +18,29 @@ class GoogleSheetsAPI:
             # 環境変数から認証情報を取得
             if credentials_file and os.path.exists(credentials_file):
                 # ファイルから認証情報を読み取り
+                logger.info("ファイルから認証情報を読み取り中...")
                 self.credentials = service_account.Credentials.from_service_account_file(
                     credentials_file,
                     scopes=['https://www.googleapis.com/auth/spreadsheets']
                 )
             else:
                 # 環境変数から認証情報を取得
+                logger.info("環境変数から認証情報を取得中...")
                 credentials_json = os.environ.get('GOOGLE_CREDENTIALS')
                 if not credentials_json:
+                    logger.error("GOOGLE_CREDENTIALS環境変数が見つかりません")
                     raise ValueError("Google認証情報が見つかりません")
                 
-                credentials_info = json.loads(credentials_json)
+                logger.info(f"認証情報の長さ: {len(credentials_json)}文字")
+                logger.info(f"認証情報の先頭: {credentials_json[:100]}...")
+                
+                try:
+                    credentials_info = json.loads(credentials_json)
+                    logger.info("JSON解析成功")
+                except json.JSONDecodeError as e:
+                    logger.error(f"JSON解析エラー: {e}")
+                    raise ValueError(f"認証情報のJSON形式が正しくありません: {e}")
+                
                 self.credentials = service_account.Credentials.from_service_account_info(
                     credentials_info,
                     scopes=['https://www.googleapis.com/auth/spreadsheets']
@@ -38,6 +50,7 @@ class GoogleSheetsAPI:
             self.spreadsheet_id = spreadsheet_id or os.environ.get('GOOGLE_SHEETS_ID')
             
             if not self.spreadsheet_id:
+                logger.error("スプレッドシートIDが設定されていません")
                 raise ValueError("スプレッドシートIDが設定されていません")
             
             logger.info("Google Sheets API初期化成功")
@@ -180,17 +193,26 @@ class GoogleCalendarAPI:
             # 環境変数から認証情報を取得
             if credentials_file and os.path.exists(credentials_file):
                 # ファイルから認証情報を読み取り
+                logger.info("ファイルから認証情報を読み取り中...")
                 self.credentials = service_account.Credentials.from_service_account_file(
                     credentials_file,
                     scopes=['https://www.googleapis.com/auth/calendar']
                 )
             else:
                 # 環境変数から認証情報を取得
+                logger.info("環境変数から認証情報を取得中...")
                 credentials_json = os.environ.get('GOOGLE_CREDENTIALS')
                 if not credentials_json:
+                    logger.error("GOOGLE_CREDENTIALS環境変数が見つかりません")
                     raise ValueError("Google認証情報が見つかりません")
                 
-                credentials_info = json.loads(credentials_json)
+                try:
+                    credentials_info = json.loads(credentials_json)
+                    logger.info("JSON解析成功")
+                except json.JSONDecodeError as e:
+                    logger.error(f"JSON解析エラー: {e}")
+                    raise ValueError(f"認証情報のJSON形式が正しくありません: {e}")
+                
                 self.credentials = service_account.Credentials.from_service_account_info(
                     credentials_info,
                     scopes=['https://www.googleapis.com/auth/calendar']
