@@ -41,23 +41,10 @@ class GoogleSheetsAPI:
                 logger.info(f"GOOGLE_CLIENT_EMAIL: {client_email}")
                 logger.info(f"GOOGLE_CLIENT_ID: {client_id}")
                 
-                # 各環境変数の存在確認
-                env_vars = {
-                    'GOOGLE_PROJECT_ID': project_id,
-                    'GOOGLE_PRIVATE_KEY_ID': private_key_id,
-                    'GOOGLE_PRIVATE_KEY': private_key,
-                    'GOOGLE_CLIENT_EMAIL': client_email,
-                    'GOOGLE_CLIENT_ID': client_id
-                }
-                
-                for var_name, var_value in env_vars.items():
-                    if var_value:
-                        logger.info(f"{var_name} は設定されています")
-                    else:
-                        logger.error(f"{var_name} が設定されていません")
-                
-                # private_keyの詳細確認
+                # private_keyの改行文字を修正
                 if private_key:
+                    # 改行文字を正しく処理
+                    private_key = private_key.replace('\\n', '\n')
                     logger.info(f"private_key の長さ: {len(private_key)}")
                     logger.info(f"private_key にBEGINが含まれる: {'BEGIN' in private_key}")
                     logger.info(f"private_key にENDが含まれる: {'END' in private_key}")
@@ -87,7 +74,6 @@ class GoogleSheetsAPI:
                         raise ValueError(f"必須フィールド {field} が設定されていません")
                 
                 logger.info("認証情報の構築完了")
-                logger.info(f"credentials_info keys: {list(credentials_info.keys())}")
                 
                 # 認証情報の作成を試行
                 try:
@@ -262,6 +248,10 @@ class GoogleCalendarAPI:
                 private_key = os.environ.get('GOOGLE_PRIVATE_KEY')
                 client_email = os.environ.get('GOOGLE_CLIENT_EMAIL')
                 client_id = os.environ.get('GOOGLE_CLIENT_ID')
+                
+                # private_keyの改行文字を修正
+                if private_key:
+                    private_key = private_key.replace('\\n', '\n')
                 
                 credentials_info = {
                     "type": "service_account",
